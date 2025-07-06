@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Container from '@mui/material/Container';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -7,11 +7,15 @@ import Button from '@mui/material/Button';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
+import { useParams } from 'react-router-dom';
 import { visit } from './utils';
 
-export default function NewArticle() {
+export default function UpdtateArticle() {
+    const { id } = useParams();
+    const [article, setArticle] = useState(null);
     const [name, setName] = useState('');
-    const [quantity, setQuantity] = useState(0);
+    const [quantity, setQuantity] = useState('');
+    const parsedQuantity = parseInt(quantity, 10);
     const [isQuantityError, setIsQuantityError] = useState(false);
     const [quantityErrorText, setQuantityErrorText] = useState('');
     const [isNameError, setIsNameError] = useState(false);
@@ -20,7 +24,8 @@ export default function NewArticle() {
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
-    const parsedQuantity = parseInt(quantity, 10);
+
+
     const resetErrors = () => {
         setIsNameError(false);
         setNameErrorText('');
@@ -30,6 +35,35 @@ export default function NewArticle() {
     const handleSnackbarClose = () => {
         setSnackbarOpen(false);
     };
+
+    useEffect(() => {
+        const fetchArticle = async () => {
+            const token = localStorage.getItem('jwt_token');
+            try {
+                const response = await fetch(`https://127.0.0.1:8000/api/article/${id}`, {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Error on loadfing');
+                }
+
+                setArticle(data);
+                setName(data.name || '');
+                setQuantity(data.quantity !== undefined ? data.quantity.toString() : '');
+            } catch (err) {
+                setSnackbarMessage(err.message);
+                setSnackbarSeverity('error');
+                setSnackbarOpen(true);
+            }
+        };
+
+        fetchArticle();
+    }, [id]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -46,7 +80,7 @@ export default function NewArticle() {
             setQuantityErrorText('Quantity is required');
             hasError = true;
         }
-        if (isNaN(parsedQuantity) || parsedQuantity <= 0) {
+        if (quantity === '' || isNaN(parsedQuantity) || parsedQuantity <= 0) {
             setIsQuantityError(true);
             setQuantityErrorText('Quantity invalid');
             hasError = true;
@@ -62,8 +96,8 @@ export default function NewArticle() {
         }
 
         try {
-            const response = await fetch('https://127.0.0.1:8000/api/add', {
-                method: 'POST',
+            const response = await fetch(`https://127.0.0.1:8000/api/update/${id}`, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
@@ -73,13 +107,13 @@ export default function NewArticle() {
             const data = await response.json();
 
             if (response.ok) {
-                setSnackbarMessage('Article created successfully!');
+                setSnackbarMessage('Article updated successfully!');
                 setSnackbarSeverity('success');
                 setName('');
                 setQuantity('');
                 setTimeout(() => visit('/main/home'), 1000);
             } else {
-                setSnackbarMessage(data.message || 'Failed to create article');
+                setSnackbarMessage(data.message || 'Failed to uptdated article');
                 setSnackbarSeverity('error');
 
                 if (data.message && data.message.includes("already")) {
@@ -99,7 +133,7 @@ export default function NewArticle() {
         <Container maxWidth="sm">
             <Paper elevation={6} sx={{ mt: 4, p: 3 }}>
                 <Typography variant="h5" component="h1" align="center" gutterBottom>
-                    Add New Article
+                    Update Article - {article?.name || ''}
                 </Typography>
                 <Box component="form" onSubmit={handleSubmit}>
                     <TextField
@@ -124,7 +158,7 @@ export default function NewArticle() {
                         sx={{ mb: 2 }}
                     />
                     <Button type="submit" variant="contained" color="primary" fullWidth>
-                        Create
+                        Update
                     </Button>
                 </Box>
             </Paper>

@@ -97,40 +97,38 @@ const Navbar = () => {
                         Test-Code
                     </Typography>
 
-                    <Box sx={{ display: { xs: 'none', sm: 'flex' } }}>
-                        <StyledButton>Accueil</StyledButton>
-                        <StyledButton>À propos</StyledButton>
-                        <StyledButton>Contact</StyledButton>
-                    </Box>
-
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: '1rem' }}>
                         {user ? (
                             <>
-                                <Avatar alt={user.email?.charAt(0).toUpperCase()} />
+                                <Avatar>{user?.email?.charAt(0).toUpperCase() || 'U'}</Avatar>
                                 <Typography variant="body1">{user.email}</Typography>
                                 <StyledButton onClick={handleLogout}>Logout</StyledButton>
                             </>
                         ) : (
                             <StyledButton onClick={() => visit('/login')}>Login</StyledButton>
                         )}
+                    </Box>
 
-                        <Box sx={{ display: { xs: 'flex', sm: 'none' } }}>
-                            <IconButton color="inherit" onClick={handleClick}>
-                                <MenuIcon />
-                            </IconButton>
-                            <Menu
-                                anchorEl={anchorEl}
-                                open={open}
-                                onClose={handleClose}
-                                MenuListProps={{
-                                    'aria-labelledby': 'basic-button',
-                                }}
-                            >
-                                <MenuItem onClick={handleClose}>Accueil</MenuItem>
-                                <MenuItem onClick={handleClose}>À propos</MenuItem>
-                                <MenuItem onClick={handleClose}>Contact</MenuItem>
-                            </Menu>
-                        </Box>
+                    {/* Menu burger pour petits écrans */}
+                    <Box sx={{ display: { xs: 'flex', sm: 'none' } }}>
+                        <IconButton color="inherit" onClick={handleClick}>
+                            <MenuIcon />
+                        </IconButton>
+                        <Menu
+                            anchorEl={anchorEl}
+                            open={open}
+                            onClose={handleClose}
+                            MenuListProps={{ 'aria-labelledby': 'basic-button' }}
+                        >
+                            {user ? (
+                                <>
+                                    <MenuItem onClick={handleClose}>{user.email}</MenuItem>
+                                    <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                                </>
+                            ) : (
+                                <MenuItem onClick={() => visit('/login')}>Login</MenuItem>
+                            )}
+                        </Menu>
                     </Box>
                 </StyledToolbar>
             </Container>
