@@ -124,7 +124,7 @@ export default function LoginSignUp() {
                         setIsSnackbarOpen(true);
                         console.log(localStorage.getItem("jwt_token"));
                         //navigate("/articles")
-                        visit('/articles')
+                        visit('/home/loader');
                     }
                 }
 

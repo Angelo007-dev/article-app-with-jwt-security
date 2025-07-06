@@ -60,7 +60,7 @@ const Navbar = () => {
     const handleLogout = () => {
         //delete the token  to logout
         localStorage.removeItem('jwt_token');
-        visit('/');
+        visit('/login');
     };
 
     //catch the user connected
@@ -111,7 +111,7 @@ const Navbar = () => {
                                 <StyledButton onClick={handleLogout}>Logout</StyledButton>
                             </>
                         ) : (
-                            <StyledButton onClick={() => visit('/')}>Login</StyledButton>
+                            <StyledButton onClick={() => visit('/login')}>Login</StyledButton>
                         )}
 
                         <Box sx={{ display: { xs: 'flex', sm: 'none' } }}>

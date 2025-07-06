@@ -11,14 +11,26 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 class ArticleController extends AbstractController
 {
-    #[Route('/articles', name: 'app_article')]
-    public function index(): Response
+
+    #[Route(path:"/article/new", name:"app_article_new")]
+    public function index():Response
     {
-        return $this->render('article/index.html.twig', []);
+        return  $this->render('article/new.html.twig',[]);
+    }
+
+    #[Route('/articles', name: 'app_article')]
+    public function getArtcicle(ArticleRepository $repo,NormalizerInterface $normalizer): Response
+    {   
+        $article = $repo->findAll();
+        $serializedArticle = $normalizer->normalize($article,'json',[
+            'groups'=>'user:read'
+        ]);
+        return $this->json($serializedArticle,201,[],['groups'=>'user:read']);
     }
     #[Route('/api/add',name:'app_add_article',methods:["POST"])]
     public function add(Request $request,SerializerInterface $serializer,EntityManagerInterface $em)
@@ -27,6 +39,10 @@ class ArticleController extends AbstractController
         $article = $serializer->deserialize($data,Article::class,'json');
         //check off article if it already exist
         $user = $this->getUser();
+        if (!$user) {
+            return new JsonResponse(['error' => 'User not anthenticated'], 401);
+        }
+        
         $isExistingArticle = $em->getRepository(Article::class)->findOneBy([
             'name'=>$article->getName()
         ]);
@@ -34,9 +50,7 @@ class ArticleController extends AbstractController
         {
             return new JsonResponse(['message' => 'Article already exist'], 401); 
         }
-        if (!$user) {
-            return new JsonResponse(['error' => 'User not anthenticated'], 401);
-        }
+        
         $article->setUser($user);
         $em->persist($article);
         $em->flush();
